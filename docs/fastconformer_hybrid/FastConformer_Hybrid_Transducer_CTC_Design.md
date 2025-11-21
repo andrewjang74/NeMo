@@ -23,38 +23,38 @@
 ```mermaid
 graph TD
     %% Nodes with Shapes
-    Input[오디오 입력 (Audio Signal)<br/>Shape: B, T_audio] -->|Waveform| Preprocessor[전처리: MelSpectrogram<br/>Shape: B, 80, T_spec]
-    Preprocessor --> SpecAug[데이터 증강: SpecAugment<br/>Shape: B, 80, T_spec]
+    Input["오디오 입력 (Audio Signal)#10;Shape: [B, T_audio]"] -->|Waveform| Preprocessor["전처리: MelSpectrogram#10;Shape: [B, 80, T_spec]"]
+    Preprocessor --> SpecAug["데이터 증강: SpecAugment#10;Shape: [B, 80, T_spec]"]
     SpecAug --> Encoder_In(인코더 진입)
     
     subgraph Encoder_Detail [FastConformer Encoder]
         direction TB
-        Encoder_In --> Subsampling[Subsampling 8x<br/>Shape: B, 512, T_enc]
-        Subsampling -->|T_enc = T_spec / 8| E_Layers[Conformer Layers (17 layers)<br/>Shape: B, 512, T_enc]
-        E_Layers --> E_Out[Encoder Output<br/>Shape: B, 512, T_enc]
+        Encoder_In --> Subsampling["Subsampling 8x#10;Shape: [B, 512, T_enc]"]
+        Subsampling -->|T_enc = T_spec / 8| E_Layers["Conformer Layers (17 layers)#10;Shape: [B, 512, T_enc]"]
+        E_Layers --> E_Out["Encoder Output#10;Shape: [B, 512, T_enc]"]
     end
     
     Encoder_Detail --> Joint_Input_Enc
     Encoder_Detail --> CTC_Input
     
-    subgraph Transducer_Path [Transducer (RNNT) Decoder]
+    subgraph Transducer_Path [Transducer RNNT Decoder]
         direction TB
-        Target[타겟 텍스트 (Target Tokens)<br/>Shape: B, U] --> Pred_Net[Prediction Net (LSTM)<br/>Shape: B, U, 640]
+        Target["타겟 텍스트 (Target Tokens)#10;Shape: [B, U]"] --> Pred_Net["Prediction Net (LSTM)#10;Shape: [B, U, 640]"]
         
-        Joint_Input_Enc(From Encoder) --> D_Joint[Joint Net<br/>Add & ReLU]
+        Joint_Input_Enc(From Encoder) --> D_Joint["Joint Net#10;Add and ReLU"]
         Pred_Net --> D_Joint
         
-        D_Joint -->|Joint Tensor<br/>B, T_enc, U, 640| D_Proj[Project to Vocab]
-        D_Proj -->|Logits<br/>B, T_enc, U, V+1| Loss_RNNT[RNNT Loss]
+        D_Joint -->|"Joint Tensor#10;[B, T_enc, U, 640]"| D_Proj[Project to Vocab]
+        D_Proj -->|"Logits#10;[B, T_enc, U, V+1]"| Loss_RNNT[RNNT Loss]
     end
     
     subgraph CTC_Path [Auxiliary CTC Decoder]
         direction TB
-        CTC_Input(From Encoder) --> C_Conv[ConvASRDecoder<br/>Proj to Vocab]
-        C_Conv -->|Logits<br/>B, T_enc, V+1| Loss_CTC[CTC Loss]
+        CTC_Input(From Encoder) --> C_Conv["ConvASRDecoder#10;Proj to Vocab"]
+        C_Conv -->|"Logits#10;[B, T_enc, V+1]"| Loss_CTC[CTC Loss]
     end
     
-    Loss_RNNT --> Total_Loss[최종 손실 (Total Loss)]
+    Loss_RNNT --> Total_Loss[최종 손실 Total Loss]
     Loss_CTC --> Total_Loss
 ```
 
@@ -111,7 +111,7 @@ sequenceDiagram
     Prep->>Prep: SpecAugment (마스킹)
     Prep->>Enc: 특징 벡터 (Features)
     
-    Note over Enc: 8배 다운샘플링 및<br/>17개 레이어 통과
+    Note over Enc: 8배 다운샘플링 및#10;17개 레이어 통과
     Enc->>Dec_RNNT: 인코딩된 정보 (Encoded Output)
     Enc->>Dec_CTC: 인코딩된 정보 (Encoded Output)
     
@@ -126,7 +126,7 @@ sequenceDiagram
     Loss->>Loss: Total Loss = RNNT + 0.3 * CTC
     Loss-->>Enc: 역전파 (Backpropagation) 학습
     
-    Note over Dec_RNNT: 추론(Inference) 시에는<br/>Transducer만 주로 사용
+    Note over Dec_RNNT: 추론(Inference) 시에는#10;Transducer만 주로 사용
     Dec_RNNT-->>User: 최종 텍스트 (Text)
 ```
 
